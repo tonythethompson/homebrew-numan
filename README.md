@@ -15,7 +15,7 @@ Pull requests and pushes to `master` run:
 
 1. Renderer unit tests (`scripts/test_render_homebrew_formula.py`)
 2. Formula static checks + Linux release-archive staging contract (`scripts/check_formula.py`)
-3. `brew install` + `brew test` of `Formula/numan.rb` on Linux
+3. `brew install tonythethompson/numan/numan` + `brew test` on Linux
 
 Local:
 
