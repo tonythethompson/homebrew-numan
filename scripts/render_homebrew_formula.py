@@ -15,17 +15,19 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT = REPO_ROOT / "packaging" / "homebrew" / "numan.rb"
+DEFAULT_OUT = REPO_ROOT / "Formula" / "numan.rb"
 
 # Release asset basename suffix -> Homebrew bottle platform key used in formula.
+# Intel Mac (x86_64-apple-darwin) is intentionally unsupported for shipping.
 REQUIRED_ASSETS = {
     "aarch64-apple-darwin": "macos_arm",
-    "x86_64-apple-darwin": "macos_intel",
     "x86_64-unknown-linux-gnu": "linux_intel",
 }
 
 ASSET_RE = re.compile(
-    r"^([0-9a-f]{64})\s+numan-(?P<ver>[^-]+(?:\.[^-]+)*)-(?P<triple>[^\s]+)\.(?P<ext>tar\.gz|zip)$"
+    r"^([0-9a-fA-F]{64})\s+numan-(?P<ver>.+)-(?P<triple>"
+    r"aarch64-apple-darwin|x86_64-unknown-linux-gnu"
+    r")\.(?P<ext>tar\.gz|zip)$"
 )
 
 
@@ -54,7 +56,6 @@ def parse_sha256sums(text: str, version: str) -> dict[str, str]:
 
 def render_formula(version: str, digests: dict[str, str]) -> str:
     mac_arm = digests["aarch64-apple-darwin"]
-    mac_intel = digests["x86_64-apple-darwin"]
     linux_intel = digests["x86_64-unknown-linux-gnu"]
     return f"""# typed: false
 # frozen_string_literal: true
@@ -81,8 +82,7 @@ class Numan < Formula
       sha256 "{mac_arm}"
     end
     on_intel do
-      url "https://github.com/tonythethompson/numan/releases/download/v#{{version}}/numan-#{{version}}-x86_64-apple-darwin.tar.gz"
-      sha256 "{mac_intel}"
+      odie "Numan no longer ships Intel Mac (x86_64) binaries. Use Apple Silicon, or `cargo install numan-cli`."
     end
   end
 
@@ -94,10 +94,9 @@ class Numan < Formula
   end
 
   def install
-    arch_dir = Dir["numan-*"].first
-    odie "expected numan-* directory in archive" if arch_dir.nil?
-
-    bin.install "#{{arch_dir}}/numan"
+    # Homebrew stages into the archive's sole top-level directory, so the
+    # binary is ./numan (not ./numan-*/numan).
+    bin.install "numan"
   end
 
   test do
@@ -107,7 +106,7 @@ end
 """
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", help="Release version without v prefix (e.g. 0.1.5)")
     parser.add_argument(
@@ -131,7 +130,7 @@ def main() -> int:
         action="store_true",
         help="Print required asset names and exit",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.check_url_layout:
         print("Required release assets for Homebrew:")
@@ -146,7 +145,9 @@ def main() -> int:
     text = render_formula(args.version, digests)
     if args.write:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(text, encoding="utf-8", newline="\n")
+        # Use open(..., newline="\n") so LF is stable on Windows hosts too.
+        with args.out.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
         print(f"Wrote {args.out}")
     else:
         sys.stdout.write(text)
