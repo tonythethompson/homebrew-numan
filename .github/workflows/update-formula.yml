@@ -48,11 +48,26 @@ jobs:
                 '.isDraft == false and any(.assets[]; .name == $asset and .state == "uploaded")' \
                 >/dev/null
           done
-          python3 scripts/render_homebrew_formula.py \
-            --version "$VERSION" \
-            --sha256sums SHA256SUMS \
-            --write \
+          RENDER_ARGS=(
+            --version "$VERSION"
+            --sha256sums SHA256SUMS
+            --write
             --out Formula/numan.rb
+          )
+          # Linux ARM is required for current releases; omit when recovering pre-ARM tags.
+          linux_arm_asset="numan-${VERSION}-aarch64-unknown-linux-gnu.tar.gz"
+          linux_arm_ok="$(
+            gh release view "$RELEASE_TAG" --repo "$NUMAN_REPO" --json isDraft,assets \
+              | jq -r --arg asset "$linux_arm_asset" \
+                'if (.isDraft == false and any(.assets[]; .name == $asset and .state == "uploaded")) then "true" else "false" end'
+          )"
+          if [[ "$linux_arm_ok" == "true" ]]; then
+            echo "Found Linux ARM archive ${linux_arm_asset}"
+          else
+            echo "No Linux ARM archive on ${RELEASE_TAG}; using --legacy-pre-linux-arm"
+            RENDER_ARGS+=(--legacy-pre-linux-arm)
+          fi
+          python3 scripts/render_homebrew_formula.py "${RENDER_ARGS[@]}"
 
       - name: Commit and push
         shell: bash

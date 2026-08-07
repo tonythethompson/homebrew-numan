@@ -65,6 +65,11 @@ def check_static_invariants(text: str) -> None:
         if needle not in text:
             fail(f"Formula/numan.rb {reason}")
 
+    # Linux ARM is optional until a numan release ships aarch64-unknown-linux-gnu.
+    if "aarch64-unknown-linux-gnu.tar.gz" in text:
+        if 'on_arm do' not in text:
+            fail("Formula/numan.rb Linux ARM URL requires an on_arm bottle block")
+
     forbidden = [
         ("arch_dir", "must not look for a nested numan-* directory (Homebrew stages into it)"),
         ("expected numan-* directory", "must not look for a nested numan-* directory"),
@@ -82,13 +87,19 @@ def check_render_roundtrip(version: str) -> None:
         sums_text = response.read().decode("utf-8")
 
     mod = load_render_mod()
-    digests = mod.parse_sha256sums(sums_text, version)
+    linux_arm_asset = f"numan-{version}-{mod.LINUX_ARM_ASSET}.tar.gz"
+    legacy = linux_arm_asset not in sums_text
+    digests = mod.parse_sha256sums(
+        sums_text, version, legacy_pre_linux_arm=legacy
+    )
     expected = mod.render_formula(version, digests)
     actual = FORMULA_PATH.read_text(encoding="utf-8")
     if actual != expected:
         fail(
             "Formula/numan.rb does not match scripts/render_homebrew_formula.py "
-            f"output for v{version} (re-render from SHA256SUMS)"
+            f"output for v{version} (re-render from SHA256SUMS"
+            + ("; used --legacy-pre-linux-arm" if legacy else "")
+            + ")"
         )
 
 
