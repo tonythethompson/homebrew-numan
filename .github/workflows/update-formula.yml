@@ -40,7 +40,8 @@ jobs:
           set -euo pipefail
           VERSION="${RELEASE_TAG#v}"
           gh release download "$RELEASE_TAG" --repo "$NUMAN_REPO" --pattern SHA256SUMS
-          for triple in aarch64-apple-darwin x86_64-apple-darwin x86_64-unknown-linux-gnu; do
+          # Intel Mac (x86_64-apple-darwin) is intentionally not shipped.
+          for triple in aarch64-apple-darwin x86_64-unknown-linux-gnu; do
             asset="numan-${VERSION}-${triple}.tar.gz"
             gh release view "$RELEASE_TAG" --repo "$NUMAN_REPO" --json isDraft,assets \
               | jq -e --arg asset "$asset" \
