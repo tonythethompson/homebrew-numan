@@ -67,8 +67,14 @@ def check_static_invariants(text: str) -> None:
 
     # Linux ARM is optional until a numan release ships aarch64-unknown-linux-gnu.
     if "aarch64-unknown-linux-gnu.tar.gz" in text:
-        if 'on_arm do' not in text:
-            fail("Formula/numan.rb Linux ARM URL requires an on_arm bottle block")
+        if not re.search(
+            r"on_linux do.*?on_arm do.*?aarch64-unknown-linux-gnu\.tar\.gz",
+            text,
+            re.S,
+        ):
+            fail(
+                "Formula/numan.rb Linux ARM URL must be inside an on_linux/on_arm bottle block"
+            )
 
     forbidden = [
         ("arch_dir", "must not look for a nested numan-* directory (Homebrew stages into it)"),
