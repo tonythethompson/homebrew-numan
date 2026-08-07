@@ -151,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help=(
             "Accept the pre-Linux-ARM Homebrew asset set "
-            "(macOS ARM + Linux x86_64 only; omit on_linux/on_arm)"
+            "(macOS ARM + Linux x86_64 only; omit the Linux ARM bottle stanza)"
         ),
     )
     parser.add_argument(
