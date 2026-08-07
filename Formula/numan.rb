@@ -14,13 +14,13 @@
 class Numan < Formula
   desc "Cross-platform package manager for Nushell"
   homepage "https://github.com/tonythethompson/numan"
-  version "0.2.0"
+  version "0.2.1"
   license "MIT"
 
   on_macos do
     on_arm do
       url "https://github.com/tonythethompson/numan/releases/download/v#{version}/numan-#{version}-aarch64-apple-darwin.tar.gz"
-      sha256 "02c213f9d08f592075273e6af1b03818c90dd5d38a3901893b5e296b8deb8bd0"
+      sha256 "3912e52d072b9f2d5ff9bd0205fb0310ba4d03f000b8177256e7014cce7cb060"
     end
     on_intel do
       odie "Numan no longer ships Intel Mac (x86_64) binaries. Use Apple Silicon, or `cargo install numan-cli`."
@@ -30,7 +30,7 @@ class Numan < Formula
   on_linux do
     on_intel do
       url "https://github.com/tonythethompson/numan/releases/download/v#{version}/numan-#{version}-x86_64-unknown-linux-gnu.tar.gz"
-      sha256 "b6f42bc38e6ddeb9cad055a9596bbf1cda5caaff6ec794e9224b3e63f5f5bd51"
+      sha256 "47039b0c0d76e12a3cdc8dfc942203b81bb18974890b5e14a60fd7e8796e19bb"
     end
   end
 
