@@ -7,7 +7,18 @@ brew tap tonythethompson/numan
 brew install numan
 ```
 
-Formula digests are updated automatically by the Numan `Publish to Homebrew tap` workflow after each `v*.*.*` GitHub Release.
+## Platforms
+
+| Platform | Status |
+|----------|--------|
+| macOS Apple Silicon (`aarch64-apple-darwin`) | shipped |
+| Linux x86_64 (`x86_64-unknown-linux-gnu`) | shipped |
+| Linux ARM64 (`aarch64-unknown-linux-gnu`) | formula support ready; bottle URLs appear on the next numan release that publishes that archive |
+| macOS Intel | not shipped (`odie` with cargo install hint) |
+
+Formula digests are updated automatically by the Numan `Publish to Homebrew tap`
+workflow (and this repo's `Update numan formula` workflow) after each `v*.*.*`
+GitHub Release. Pre-Linux-ARM tags re-render with `--legacy-pre-linux-arm`.
 
 ## CI
 
